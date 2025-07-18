@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Práctica de Pagos de Ruleta</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1b1b1b;
+            color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #2c2c2c;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            width: 95%;
+            max-width: 360px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 10px;
+            font-size: 24px;
+            color: #ffcc00;
+        }
+        button {
+            background: #ffcc00;
+            color: #1b1b1b;
+            border: none;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #e6b800;
+        }
+        .tendida {
+            margin-top: 20px;
+            font-size: 26px;
+            text-align: center;
+            font-weight: bold;
+            line-height: 1.8;
+        }
+        .opciones button {
+            width: 100%;
+            margin: 6px 0;
+            font-size: 16px;
+        }
+        .mensaje {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #00ff99;
+        }
+        .imagen-ruleta {
+            width: 60px;
+            margin-bottom: 10px;
+        }
+        video {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="menu">
+            <h1>Práctica de Pagos de Ruleta</h1>
+            <button onclick="mostrarSubmenu()">Práctica de pagos por valor de Fichas</button>
+            <button onclick="mostrarBaile()">Baile de la Victoria</button>
+        </div>
+
+        <div id="submenu" style="display:none;">
+            <h1>Pagos por Fichas</h1>
+            <button onclick="practicaFichas(1000)">Fichas de 1.000</button>
+            <button onclick="practicaFichas(2000)">Fichas de 2.000</button>
+            <button onclick="practicaFichas(5000)">Fichas de 5.000</button>
+            <button onclick="volverMenu()">Volver</button>
+        </div>
+
+        <div id="baile" style="display:none;">
+            <h1>Baile de la Victoria</h1>
+            <video autoplay loop muted playsinline>
+               <source src="https://raw.githubusercontent.com/DonSegua/Practica-de-Ruleta/main/baile_victoria_convertido.mp4" type="video/mp4">
+               Tu navegador no soporta la reproducción de video.
+            </video>
+            <button onclick="volverMenu()">Volver</button>
+        </div>
+
+        <div id="ejercicio" style="display:none;">
+            <img src="https://i.imgur.com/O6bIG3x.png" class="imagen-ruleta" alt="Ruleta">
+            <h1 id="numeroGanador"></h1>
+            <div class="tendida" id="tendida"></div>
+            <div class="opciones" id="opciones"></div>
+            <div class="mensaje" id="mensaje"></div>
+        </div>
+    </div>
+
+    <script>
+        const pagos = { pleno: 35, medio: 17, calle: 11, cuadro: 8, linea: 5 };
+        let correcto = 0;
+        let fichasGlobal = [];
+        let maxFichasGlobal = 5;
+        let valorFichaGlobal = 1000;
+
+        function mostrarSubmenu(){
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('submenu').style.display = 'block';
+        }
+
+        function mostrarBaile(){
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('baile').style.display = 'block';
+        }
+
+        function practicaFichas(ficha) {
+            fichasGlobal = [ficha];
+            valorFichaGlobal = ficha;
+            maxFichasGlobal = 5;
+            generarEjercicio();
+        }
+
+        function generarEjercicio() {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('submenu').style.display = 'none';
+            document.getElementById('baile').style.display = 'none';
+            document.getElementById('ejercicio').style.display = 'block';
+
+            let ganador = Math.floor(Math.random() * 37);
+            document.getElementById('numeroGanador').innerText = "Número Ganador: " + ganador;
+
+            let tendida = {};
+            let tipos = Object.keys(pagos);
+            let numApuestas = Math.floor(Math.random()*5)+1;
+            let total = 0;
+
+            for(let i=0; i<numApuestas; i++){
+                let tipo = tipos[Math.floor(Math.random()*tipos.length)];
+                let cantFichas = Math.floor(Math.random()*maxFichasGlobal)+1;
+                let valorFicha = fichasGlobal[0];
+                let pago = cantFichas * valorFicha * pagos[tipo];
+                total += pago;
+                if(tendida[tipo]){
+                    tendida[tipo] += cantFichas;
+                }else{
+                    tendida[tipo] = cantFichas;
+                }
+            }
+
+            correcto = total;
+
+            let textoTendida = `<div style='font-size:30px;'>Valor de ficha: ${valorFichaGlobal.toLocaleString('es-CL')}</div><br>`;
+            for(let tipo in tendida){
+                textoTendida += `${tendida[tipo]} ${tipo}${tendida[tipo]>1?'s':''}<br>`;
+            }
+
+            document.getElementById('tendida').innerHTML = textoTendida;
+
+            let opciones = [total];
+            while(opciones.length <5){
+                let op = total + Math.floor(Math.random()*10000 - 5000);
+                if(op>0 && !opciones.includes(op)) opciones.push(op);
+            }
+            opciones.sort(()=>Math.random()-0.5);
+
+            let botones = '';
+            opciones.forEach(op=>{
+                botones += `<button onclick=\"verificar(${op})\">${op.toLocaleString('es-CL')}</button>`;
+            });
+
+            document.getElementById('opciones').innerHTML = botones;
+            document.getElementById('mensaje').innerText = '';
+        }
+
+        function verificar(seleccion){
+            if(seleccion === correcto){
+                document.getElementById('mensaje').innerHTML = `✅ <strong>Correcto!</strong> Bien hecho.<br>Total de la apuesta: ${correcto.toLocaleString('es-CL')}`;
+                document.getElementById('opciones').innerHTML = `
+                    <button onclick=\"volverMenu()\">Volver al Menú</button>
+                    <button onclick=\"generarEjercicio()\">Volver a Pagar</button>
+                `;
+            }else{
+                document.getElementById('mensaje').innerHTML = `❌ <strong>Incorrecto.</strong> Revisa los pagos y vuelve a intentarlo.`;
+            }
+        }
+
+        function volverMenu(){
+            document.getElementById('menu').style.display = 'block';
+            document.getElementById('submenu').style.display = 'none';
+            document.getElementById('baile').style.display = 'none';
+            document.getElementById('ejercicio').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
